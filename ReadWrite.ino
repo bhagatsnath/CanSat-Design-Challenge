@@ -1,7 +1,7 @@
 const int sucessPin = 4; //green
 const int failedPin = 5; // red
-const int infoCapturingPin = 10; // blue
-const int initializingPin = 4; //white
+const int infoCapturingPin = 3; // blue
+const int initializingPin = 2; //white
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -18,24 +18,42 @@ Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 Adafruit_MPU6050 mpu;
 
 void setup() {
-  Initialization
+  //Initialization
+  //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  //LED Initialization
+  //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  pinMode(sucessPin, OUTPUT);
+  pinMode(failedPin, OUTPUT);
+  pinMode(infoCapturingPin, OUTPUT);
+  pinMode(initializingPin, OUTPUT);
   //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   //Serial Initialization
   //--------------------------------------------------------------
   // Open serial communications and wait for port to open:
+  Serial.println("5");
+  delay(1000);
+  Serial.println("4");
+  delay(1000);
+  Serial.println("3");
+  delay(1000);
+  Serial.println("2");
+  delay(1000);
+  Serial.println("1");
+  delay(1000);
+  Serial.println("IPB");
   Serial.begin(115200);
   // wait for Serial Monitor to connect. Needed for native USB port boards only:
   while (!Serial){
-    delay(1000);
+    delay(100);
   }
 //--------------------------------------------------------------
 //SD Card
 //--------------------------------------------------------------
-  Serial.print("Initializing SD card...");
+  Serial.print("ISC");
   digitalWrite(initializingPin, HIGH);
   delay(100);
   if (!SD.begin(10)) {
-    Serial.println("Initialization failed");
+    Serial.println("IF");
     digitalWrite(initializingPin, LOW);
     digitalWrite(failedPin, HIGH);
     while (!SD.begin(10)){
@@ -46,7 +64,7 @@ void setup() {
     delay(100);
   }
   digitalWrite(initializingPin, LOW);
-  Serial.println("initialization done.");
+  Serial.println("ID");
   digitalWrite(sucessPin, HIGH);
   delay(5000);
   digitalWrite(sucessPin, LOW);
@@ -58,7 +76,7 @@ void setup() {
     digitalWrite(initializingPin, HIGH);
     delay(100);
     if (!status) {
-      Serial.println("Could not find a valid BMP280 sensor, check wiring or try a different adress");
+      Serial.println("No BMP280");
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!bmp.begin()){
@@ -82,7 +100,7 @@ void setup() {
     digitalWrite(initializingPin, HIGH);
     delay(100);
     if (!status2) {
-      Serial.println("Failed to find MPU6050 chip");
+      Serial.println("No MPU6050");
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!mpu.begin()){
@@ -115,7 +133,6 @@ void setup() {
 //mpu6050
 //--------------------------------------------------------------
 mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  Serial.print("Accelerometer range set to: ");
   switch (mpu.getAccelerometerRange()) {
   case MPU6050_RANGE_2_G:
     Serial.println("+-2G");
@@ -131,7 +148,6 @@ mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
     break;
   }
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  Serial.print("Gyro range set to: ");
   switch (mpu.getGyroRange()) {
   case MPU6050_RANGE_250_DEG:
     Serial.println("+- 250 deg/s");
@@ -148,7 +164,6 @@ mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   }
 
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  Serial.print("Filter bandwidth set to: ");
   switch (mpu.getFilterBandwidth()) {
   case MPU6050_BAND_260_HZ:
     Serial.println("260 Hz");
@@ -181,12 +196,10 @@ mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   // if the file opened okay, write to it:
   if (myFile) {
     mainLoop();
-    // close the file:
-    myFile.close();
     Serial.println("done.");
   } else {
     // if the file didn't open, print an error:
-    Serial.println("error opening test.txt");
+    Serial.println("no file");
     while (true){
       digitalWrite(failedPin, HIGH);
       delay(1000);
@@ -199,28 +212,60 @@ mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
 static void mainLoop(){
   //Main Loop
   //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  sensors_event_t temp_event, pressure_event;
-  bmp_temp->getEvent(&temp_event);
-  bmp_pressure->getEvent(&pressure_event);
-
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
-
   int x;
   for (x = 1; x<=10;x++){
     if (myFile){
-      myFile.println("Test #"+x+": ");
+      myFile = SD.open("MyFile.txt", FILE_WRITE);
+      sensors_event_t temp_event, pressure_event;
+      bmp_temp->getEvent(&temp_event);
+      bmp_pressure->getEvent(&pressure_event);
+
+      sensors_event_t a, g, temp;
+      mpu.getEvent(&a, &g, &temp);
+
+      myFile.print("Test #");
+      myFile.print(x);
+      myFile.println(": ");
+      digitalWrite(infoCapturingPin, HIGH);
       myFile.println("");
-      myFile.println("Temperature: ");
+      myFile.println("BMP Temperature: ");
       myFile.print(temp_event.temperature);
       myFile.println(" *C");
+
       myFile.println("Pressure = ");
       myFile.print(pressure_event.pressure);
       myFile.println(" hPa");
+      myFile.print("Acceleration X: ");
+      myFile.print(a.acceleration.x);
+      myFile.print(", Y: ");
+      myFile.print(a.acceleration.y);
+      myFile.print(", Z: ");
+      myFile.print(a.acceleration.z);
+      myFile.println(" m/s^2");
+
+      myFile.print("Rotation X: ");
+      myFile.print(g.gyro.x);
+      myFile.print(", Y: ");
+      myFile.print(g.gyro.y);
+      myFile.print(", Z: ");
+      myFile.print(g.gyro.z);
+      myFile.println(" rad/s");
+
+      myFile.print("MPU Temperature: ");
+      myFile.print(temp.temperature);
+      myFile.println(" degC");
+      myFile.println();
+      digitalWrite(infoCapturingPin, LOW);
+      digitalWrite(sucessPin, HIGH);
+      delay(2000);
+      digitalWrite(sucessPin, LOW);
+      myFile.print("Test #");
+      myFile.print(x);
+      myFile.println(" completed");
       myFile.println();
       myFile.println();
-      myFile.println();
-      myFile.println();
+      Serial.println("done");
+      myFile.close();
     }
   }
 }
