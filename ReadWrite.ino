@@ -1,7 +1,10 @@
+//CanSat Design Challenge 
+//Group Members: Bhagat, Mackenzie, Malin
 const int sucessPin = 4; //green
 const int failedPin = 5; // red
 const int infoCapturingPin = 3; // blue
 const int initializingPin = 2; //white
+const int BuzzerPin = 1; //buzzer
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -26,26 +29,23 @@ void setup() {
   pinMode(failedPin, OUTPUT);
   pinMode(infoCapturingPin, OUTPUT);
   pinMode(initializingPin, OUTPUT);
+  pinMode(BuzzerPin, OUTPUT);
   //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   //Serial Initialization
   //--------------------------------------------------------------
   // Open serial communications and wait for port to open:
-  Serial.println("5");
-  delay(1000);
-  Serial.println("4");
-  delay(1000);
+  Serial.begin(115200);
+  // wait for Serial Monitor to connect. Needed for native USB port boards only:
+  while (!Serial){
+    delay(5000);
+  }
+  noTone(BuzzerPin);
   Serial.println("3");
   delay(1000);
   Serial.println("2");
   delay(1000);
   Serial.println("1");
   delay(1000);
-  Serial.println("IPB");
-  Serial.begin(115200);
-  // wait for Serial Monitor to connect. Needed for native USB port boards only:
-  while (!Serial){
-    delay(100);
-  }
 //--------------------------------------------------------------
 //SD Card
 //--------------------------------------------------------------
@@ -57,8 +57,13 @@ void setup() {
     digitalWrite(initializingPin, LOW);
     digitalWrite(failedPin, HIGH);
     while (!SD.begin(10)){
-
+      tone(BuzzerPin, 1000);
+      delay(100);
+      if (SD.begin(10)){
+        break;
+      }
     }
+    noTone(BuzzerPin);
     digitalWrite(failedPin, LOW);
     digitalWrite(initializingPin, HIGH);
     delay(100);
@@ -80,9 +85,14 @@ void setup() {
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!bmp.begin()){
+        tone(BuzzerPin, 1000);
         delay(100);
         status = bmp.begin();
+        if (status){
+          break;
+        }
       }
+      noTone(BuzzerPin);
       digitalWrite(failedPin, LOW);
       digitalWrite(initializingPin, HIGH);
       delay(100);
@@ -104,9 +114,14 @@ void setup() {
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!mpu.begin()){
+        tone(BuzzerPin, 1000);
         delay(100);
         status2 = mpu.begin();
+        if (status2){
+          break;
+        }
       }
+      noTone(BuzzerPin);
       digitalWrite(failedPin, LOW);
       digitalWrite(initializingPin, HIGH);
       delay(100);
@@ -133,60 +148,8 @@ void setup() {
 //mpu6050
 //--------------------------------------------------------------
 mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  switch (mpu.getAccelerometerRange()) {
-  case MPU6050_RANGE_2_G:
-    Serial.println("+-2G");
-    break;
-  case MPU6050_RANGE_4_G:
-    Serial.println("+-4G");
-    break;
-  case MPU6050_RANGE_8_G:
-    Serial.println("+-8G");
-    break;
-  case MPU6050_RANGE_16_G:
-    Serial.println("+-16G");
-    break;
-  }
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  switch (mpu.getGyroRange()) {
-  case MPU6050_RANGE_250_DEG:
-    Serial.println("+- 250 deg/s");
-    break;
-  case MPU6050_RANGE_500_DEG:
-    Serial.println("+- 500 deg/s");
-    break;
-  case MPU6050_RANGE_1000_DEG:
-    Serial.println("+- 1000 deg/s");
-    break;
-  case MPU6050_RANGE_2000_DEG:
-    Serial.println("+- 2000 deg/s");
-    break;
-  }
-
-  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-  switch (mpu.getFilterBandwidth()) {
-  case MPU6050_BAND_260_HZ:
-    Serial.println("260 Hz");
-    break;
-  case MPU6050_BAND_184_HZ:
-    Serial.println("184 Hz");
-    break;
-  case MPU6050_BAND_94_HZ:
-    Serial.println("94 Hz");
-    break;
-  case MPU6050_BAND_44_HZ:
-    Serial.println("44 Hz");
-    break;
-  case MPU6050_BAND_21_HZ:
-    Serial.println("21 Hz");
-    break;
-  case MPU6050_BAND_10_HZ:
-    Serial.println("10 Hz");
-    break;
-  case MPU6050_BAND_5_HZ:
-    Serial.println("5 Hz");
-    break;
-  }
+mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 //--------------------------------------------------------------
 //sdcard
 //--------------------------------------------------------------
@@ -196,11 +159,17 @@ mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   // if the file opened okay, write to it:
   if (myFile) {
     mainLoop();
+    for (int m = 200; m<=6000;m=+500){
+      tone(BuzzerPin, x)
+    }
+    delay(40000);
+    noTone(BuzzerPin);
     Serial.println("done.");
   } else {
     // if the file didn't open, print an error:
     Serial.println("no file");
     while (true){
+      tone(BuzzerPin, 1000);
       digitalWrite(failedPin, HIGH);
       delay(1000);
       digitalWrite(failedPin, LOW);
