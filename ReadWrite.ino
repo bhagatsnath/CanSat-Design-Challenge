@@ -181,6 +181,11 @@ mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 static void mainLoop(){
   //Main Loop
   //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  digitalWrite(initializingPin, HIGH);
+  digitalWrite(sucessPin, HIGH);
+  delay(30000);
+  digitalWrite(initializingPin, LOW);
+  digitalWrite(sucessPin, LOW);
   int x;
   for (x = 1; x<=10;x++){
     if (myFile){
