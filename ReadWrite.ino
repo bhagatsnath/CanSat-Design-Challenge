@@ -7,6 +7,10 @@ const int initializingPin = 2; //white
 const int BuzzerPin = 6; //buzzer
 
 int x;
+int launchInterval = 10000;
+int lightsInterval = 2000;
+int otherInterval = 1000;
+int sucessInterval = 4000;
 
 //SD Card Pin Configurations:
 // CS SD Pin: Digital Pin 10
@@ -69,14 +73,14 @@ void setup() {
 //--------------------------------------------------------------
   Serial.println("ISC");
   digitalWrite(initializingPin, HIGH);
-  delay(2000);
+  delay(lightsInterval);
   if (!SD.begin(10)) {
     Serial.println("IF");
     digitalWrite(initializingPin, LOW);
     digitalWrite(failedPin, HIGH);
     while (!SD.begin(10)){
       tone(BuzzerPin, 1000);
-      delay(1000);
+      delay(otherInterval);
       if (SD.begin(10)){
         break;
       }
@@ -84,12 +88,12 @@ void setup() {
     noTone(BuzzerPin);
     digitalWrite(failedPin, LOW);
     digitalWrite(initializingPin, HIGH);
-    delay(2000);
+    delay(lightsInterval);
   }
   digitalWrite(initializingPin, LOW);
   Serial.println("ID");
   digitalWrite(sucessPin, HIGH);
-  delay(5000);
+  delay(sucessInterval);
   digitalWrite(sucessPin, LOW);
   //--------------------------------------------------------------
   //BMP280 Sensor
@@ -97,14 +101,14 @@ void setup() {
     unsigned status;
     status = bmp.begin();
     digitalWrite(initializingPin, HIGH);
-    delay(2000);
+    delay(lightsInterval);
     if (!status) {
       Serial.println("No BMP280");
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!bmp.begin()){
         tone(BuzzerPin, 1000);
-        delay(1000);
+        delay(otherInterval);
         status = bmp.begin();
         if (status){
           break;
@@ -113,12 +117,12 @@ void setup() {
       noTone(BuzzerPin);
       digitalWrite(failedPin, LOW);
       digitalWrite(initializingPin, HIGH);
-      delay(2000);
+      delay(lightsInterval);
     }
     digitalWrite(initializingPin, LOW);
     Serial.println("bmp_setupSucess");
     digitalWrite(sucessPin, HIGH);
-    delay(5000);
+    delay(sucessInterval);
     digitalWrite(sucessPin, LOW);
   //--------------------------------------------------------------
   //MPU6050 Sensor
@@ -126,14 +130,14 @@ void setup() {
   unsigned status2;
     status2 = mpu.begin();
     digitalWrite(initializingPin, HIGH);
-    delay(2000);
+    delay(lightsInterval);
     if (!status2) {
       Serial.println("No MPU6050");
       digitalWrite(initializingPin, LOW);
       digitalWrite(failedPin, HIGH);
       while (!mpu.begin()){
         tone(BuzzerPin, 1000);
-        delay(1000);
+        delay(otherInterval);
         status2 = mpu.begin();
         if (status2){
           break;
@@ -142,12 +146,12 @@ void setup() {
       noTone(BuzzerPin);
       digitalWrite(failedPin, LOW);
       digitalWrite(initializingPin, HIGH);
-      delay(2000);
+      delay(lightsInterval);
     }
     digitalWrite(initializingPin, LOW);
     Serial.println("mpu_setupSucess");
     digitalWrite(sucessPin, HIGH);
-    delay(5000);
+    delay(sucessInterval);
     digitalWrite(sucessPin, LOW);
   //--------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -171,11 +175,11 @@ mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 //--------------------------------------------------------------
   // open the file. note that only one file can be open at a time,
   mainLoop();
-  tone(BuzzerPin, 4000);
-  delay(5000);
-  noTone(BuzzerPin);
   digitalWrite(infoCapturingPin, HIGH);
   digitalWrite(sucessPin, HIGH);
+  tone(BuzzerPin, 4000);
+  delay(60000);
+  noTone(BuzzerPin);
   Serial.println("done");
   for (int m = 200; m<=1000;m=+500){
     
@@ -188,11 +192,11 @@ static void mainLoop(){
   delay(3000);
   digitalWrite(initializingPin, HIGH);
   digitalWrite(infoCapturingPin, HIGH);
-  delay(10000);
+  delay(launchInterval);
   digitalWrite(initializingPin, LOW);
   digitalWrite(infoCapturingPin, LOW);
   for (x = 1; x<=10;x++){
-    myFile = SD.open("MYFILE.txt", FILE_WRITE);
+    myFile = SD.open("CanSat_Test_Results.txt", FILE_WRITE);
     if (myFile){
       mainText();
       myFile.close();
@@ -224,7 +228,7 @@ static void mainText(){
     myFile.println("");
     myFile.print("BMP Temperature: ");
     myFile.print(temp_event.temperature);
-    myFile.println(" *C");
+    myFile.println(" °C");
 
     myFile.print("Pressure = ");
     myFile.print(pressure_event.pressure);
@@ -247,11 +251,11 @@ static void mainText(){
 
     myFile.print("MPU Temperature: ");
     myFile.print(temp.temperature);
-    myFile.println(" degC");
+    myFile.println(" °C");
     myFile.println();
-    delay(2000);
+    delay(otherInterval);
     digitalWrite(infoCapturingPin, LOW);
-    delay(2000);
+    delay(otherInterval);
     myFile.println();
     myFile.println();
     myFile.println();
