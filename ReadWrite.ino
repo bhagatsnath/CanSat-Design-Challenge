@@ -16,7 +16,7 @@ int sucessInterval = 4000;
 // CS SD Pin: Digital Pin 10
 //SCK SD Pin: Digital Pin 13
 //MOSI SD Pin: Digital Pin 11
-//MOSO SD Pin: Digital Pin 12
+//MISO SD Pin: Digital Pin 12
 //VCC SD Pin: 5V Pin
 // GND SD Pin: GND Pin
 
