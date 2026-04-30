@@ -35,6 +35,10 @@ Adafruit_BMP280 bmp; // use I2C interface
 Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
 Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 Adafruit_MPU6050 mpu;
+#define PIN_MQ135 A0
+MQ135 mq135_sensor(PIN_MQ135);
+float temperature;
+float humidity = 25.0;
 
 void setup() {
   //Initialization
@@ -154,6 +158,29 @@ void setup() {
     delay(sucessInterval);
     digitalWrite(sucessPin, LOW);
   //--------------------------------------------------------------
+  //MQ135
+  //--------------------------------------------------------------
+  digitalWrite(initializingPin, HIGH);
+  delay(lightsInterval);
+  int checkValue  = analogRead(A0);
+  if (checkValue==0 || checkValue ==1023){
+    digitalWrite(initializingPin, LOW);
+    digitalWrite(failedPin, HIGH);
+    while (checkValue==0 || checkValue ==1023){
+      tone(BuzzerPin, 1000);
+      if (!(checkValue==0 || checkValue ==1023)){
+        noTone(BuzzerPin);
+        break;
+      }
+      digitalWrite(initializingPin, HIGH);
+      delay(lightsInterval);
+    }
+  }
+  digitalWrite(initializingPin, LOW);
+  Serial.println("MQ_setupSucess");
+  digitalWrite(sucessPin, HIGH);
+  delay(sucessInterval);
+  digitalWrite(sucessPin, LOW);
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //Actions
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -249,10 +276,22 @@ static void mainText(){
     myFile.print(g.gyro.z);
     myFile.println(" rad/s");
 
+    temperature = temp.temperature;
     myFile.print("MPU Temperature: ");
-    myFile.print(temp.temperature);
+    myFile.print(temperature);
     myFile.println(" °C");
     myFile.println();
+    
+    float correctedRZero = mq135_sensor.getCorrectedRZero(temperature, humidity);
+    float resistance = mq135_sensor.getResistance();
+    float correctedPPM = mq135_sensor.getCorrectedPPM(temperature, humidity);
+    myFile.print("Corrected RZero: ");
+    myFile.println(correctedRZero);
+    myFile.print("Resistance: ");
+    myFile.println(resistance);
+    myFile.print("Parts per Million (Air Quality Measurement): ")
+    myFile.print(correctedPPM);
+    myFile.println(" ppm");
     delay(otherInterval);
     digitalWrite(infoCapturingPin, LOW);
     delay(otherInterval);
