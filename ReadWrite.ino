@@ -29,14 +29,13 @@ int sucessInterval = 4000;
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#include <MQ135.h> 
 //essential variable declaration and initialization
 File myFile;
 Adafruit_BMP280 bmp; // use I2C interface
 Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
 Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
-Adafruit_MPU6050 mpu;
-#define PIN_MQ135 A0
-MQ135 mq135_sensor(PIN_MQ135);
+MQ135 mq135_sensor(A0);
 float temperature;
 float humidity = 25.0;
 
@@ -57,9 +56,6 @@ void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   // wait for Serial Monitor to connect. Needed for native USB port boards only:
-  while (!Serial){
-    delay(5000);
-  }
 
   noTone(BuzzerPin);
   digitalWrite(initializingPin, LOW);
@@ -129,35 +125,6 @@ void setup() {
     delay(sucessInterval);
     digitalWrite(sucessPin, LOW);
   //--------------------------------------------------------------
-  //MPU6050 Sensor
-  //--------------------------------------------------------------
-  unsigned status2;
-    status2 = mpu.begin();
-    digitalWrite(initializingPin, HIGH);
-    delay(lightsInterval);
-    if (!status2) {
-      Serial.println("No MPU6050");
-      digitalWrite(initializingPin, LOW);
-      digitalWrite(failedPin, HIGH);
-      while (!mpu.begin()){
-        tone(BuzzerPin, 1000);
-        delay(otherInterval);
-        status2 = mpu.begin();
-        if (status2){
-          break;
-        }
-      }
-      noTone(BuzzerPin);
-      digitalWrite(failedPin, LOW);
-      digitalWrite(initializingPin, HIGH);
-      delay(lightsInterval);
-    }
-    digitalWrite(initializingPin, LOW);
-    Serial.println("mpu_setupSucess");
-    digitalWrite(sucessPin, HIGH);
-    delay(sucessInterval);
-    digitalWrite(sucessPin, LOW);
-  //--------------------------------------------------------------
   //MQ135
   //--------------------------------------------------------------
   digitalWrite(initializingPin, HIGH);
@@ -192,12 +159,6 @@ void setup() {
                   Adafruit_BMP280::FILTER_X16,      /* Filtering. */
                   Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 //--------------------------------------------------------------
-//mpu6050
-//--------------------------------------------------------------
-mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-//--------------------------------------------------------------
 //sdcard
 //--------------------------------------------------------------
   // open the file. note that only one file can be open at a time,
@@ -223,7 +184,7 @@ static void mainLoop(){
   digitalWrite(initializingPin, LOW);
   digitalWrite(infoCapturingPin, LOW);
   for (x = 1; x<=10;x++){
-    myFile = SD.open("CanSat_Test_Results.txt", FILE_WRITE);
+    myFile = SD.open("MYFILE.txt", FILE_WRITE);
     if (myFile){
       mainText();
       myFile.close();
@@ -246,50 +207,23 @@ static void mainText(){
     bmp_temp->getEvent(&temp_event);
     bmp_pressure->getEvent(&pressure_event);
 
-    sensors_event_t a, g, temp;
-    mpu.getEvent(&a, &g, &temp);
+    // sensors_event_t a, g, temp;
+    // mpu.getEvent(&a, &g, &temp);
+    temperature = temp_event.temperature;
     myFile.print("Test #");
     myFile.print(x);
     myFile.println(": ");
     digitalWrite(infoCapturingPin, HIGH);
     myFile.println("");
     myFile.print("BMP Temperature: ");
-    myFile.print(temp_event.temperature);
+    myFile.print(temperature);
     myFile.println(" °C");
 
     myFile.print("Pressure = ");
     myFile.print(pressure_event.pressure);
     myFile.println(" hPa");
-    myFile.print("Acceleration X: ");
-    myFile.print(a.acceleration.x);
-    myFile.print(", Y: ");
-    myFile.print(a.acceleration.y);
-    myFile.print(", Z: ");
-    myFile.print(a.acceleration.z);
-    myFile.println(" m/s^2");
-
-    myFile.print("Rotation X: ");
-    myFile.print(g.gyro.x);
-    myFile.print(", Y: ");
-    myFile.print(g.gyro.y);
-    myFile.print(", Z: ");
-    myFile.print(g.gyro.z);
-    myFile.println(" rad/s");
-
-    temperature = temp.temperature;
-    myFile.print("MPU Temperature: ");
-    myFile.print(temperature);
-    myFile.println(" °C");
-    myFile.println();
-    
-    float correctedRZero = mq135_sensor.getCorrectedRZero(temperature, humidity);
-    float resistance = mq135_sensor.getResistance();
     float correctedPPM = mq135_sensor.getCorrectedPPM(temperature, humidity);
-    myFile.print("Corrected RZero: ");
-    myFile.println(correctedRZero);
-    myFile.print("Resistance: ");
-    myFile.println(resistance);
-    myFile.print("Parts per Million (Air Quality Measurement): ")
+    myFile.print("Parts per Million (Air Quality Measurement): ");
     myFile.print(correctedPPM);
     myFile.println(" ppm");
     delay(otherInterval);
