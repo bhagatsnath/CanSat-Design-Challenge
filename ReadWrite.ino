@@ -1,16 +1,21 @@
 //CanSat Design Challenge 
 //Group Members: Bhagat, Mackenzie, Malin
+//Light Pin Declaration
 const int sucessPin = 4; //green
 const int failedPin = 5; // red
 const int infoCapturingPin = 3; // blue
 const int initializingPin = 2; //white
 const int BuzzerPin = 6; //buzzer
 
+//intervals between light blinks
 int x;
 int launchInterval = 10000;
 int lightsInterval = 2000;
 int otherInterval = 1000;
 int sucessInterval = 4000;
+
+//Number of Tests
+const int numberOfTests = 10;
 
 //SD Card Pin Configurations:
 // CS SD Pin: Digital Pin 10
@@ -55,19 +60,23 @@ void setup() {
   //--------------------------------------------------------------
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
-  // wait for Serial Monitor to connect. Needed for native USB port boards only:
 
   noTone(BuzzerPin);
+  digitalWrite(initializingPin, HIGH);
+  digitalWrite(failedPin, HIGH);
+  digitalWrite(sucessPin, HIGH);
+  digitalWrite(infoCapturingPin, HIGH);
+  for (int y = 5; y>=0; y--){
+    tone(BuzzerPin, 2000);
+    delay(200);
+    noTone(BuzzerPin);
+    delay(700);
+  }
   digitalWrite(initializingPin, LOW);
   digitalWrite(failedPin, LOW);
   digitalWrite(sucessPin, LOW);
   digitalWrite(infoCapturingPin, LOW);
-  Serial.println("3");
-  delay(1000);
-  Serial.println("2");
-  delay(1000);
-  Serial.println("1");
-  delay(1000);
+  delay (1000);
 //--------------------------------------------------------------
 //SD Card
 //--------------------------------------------------------------
@@ -135,6 +144,7 @@ void setup() {
     digitalWrite(failedPin, HIGH);
     while (checkValue==0 || checkValue ==1023){
       tone(BuzzerPin, 1000);
+      checkValue = analogRead(A0);
       if (!(checkValue==0 || checkValue ==1023)){
         noTone(BuzzerPin);
         break;
@@ -180,18 +190,41 @@ static void mainLoop(){
   delay(3000);
   digitalWrite(initializingPin, HIGH);
   digitalWrite(infoCapturingPin, HIGH);
+  tone (BuzzerPin, 3000);
   delay(launchInterval);
+  noTone (BuzzerPin);
   digitalWrite(initializingPin, LOW);
   digitalWrite(infoCapturingPin, LOW);
-  for (x = 1; x<=10;x++){
-    myFile = SD.open("MYFILE.txt", FILE_WRITE);
+  String fileName = "MYFILE.txt";
+  myFile = SD.open(fileName, FILE_WRITE);
+  if (myFile){
+    myFile.println("CanSat Design Challenge 2025-2026");
+    myFile.println("Group Members: Mackenzie, Malin, Bhagat");
+    myFile.print("Number of Tests: ");
+    myFile.println(numberOfTests);
+    myFile.println("Teacher: Stephen Wong");
+    myFile.close();
+  }
+  else{
+    // if the file didn't open, print an error:
+    Serial.println("no file 1");
+    while (true){
+      tone(BuzzerPin, 1000);
+      digitalWrite(failedPin, HIGH);
+      delay(500);
+      digitalWrite(failedPin, LOW);
+      delay(500);
+    }
+  }  
+  for (x = 1; x<=numberOfTests;x++){
+    myFile = SD.open(fileName, FILE_WRITE);
     if (myFile){
       mainText();
       myFile.close();
     }
     else{
       // if the file didn't open, print an error:
-      Serial.println("no file");
+      Serial.println("no file 2");
       while (true){
         tone(BuzzerPin, 1000);
         digitalWrite(failedPin, HIGH);
@@ -226,6 +259,21 @@ static void mainText(){
     myFile.print("Parts per Million (Air Quality Measurement): ");
     myFile.print(correctedPPM);
     myFile.println(" ppm");
+    if (correctedPPM>450&&correctedPPM<=700){
+      myFile.println("Air Quality Description: Excellent");
+    }
+    else if (correctedPPM>700&&correctedPPM<=1000){
+      myFile.println("Air Quality Description: Good");
+    }
+    else if (correctedPPM>1000&&correctedPPM<=1500){
+      myFile.println("Air Quality Description: Fair");
+    }
+    else if (correctedPPM>1500&&correctedPPM<=2500){
+      myFile.println("Air Quality Description: Poor");
+    }
+    else if (correctedPPM>2500&&correctedPPM<=5000){
+      myFile.println("Air Quality Description: Bad");
+    }
     delay(otherInterval);
     digitalWrite(infoCapturingPin, LOW);
     delay(otherInterval);
