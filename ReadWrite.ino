@@ -10,9 +10,9 @@ const int BuzzerPin = 6; //buzzer
 //intervals between light blinks
 int x;
 int launchInterval = 10000;
-int lightsInterval = 2000;
+int lightsInterval = 1000;
 int otherInterval = 1000;
-int sucessInterval = 4000;
+int sucessInterval = 3000;
 
 //Number of Tests
 const int numberOfTests = 10;
@@ -42,7 +42,7 @@ Adafruit_Sensor *bmp_temp = bmp.getTemperatureSensor();
 Adafruit_Sensor *bmp_pressure = bmp.getPressureSensor();
 MQ135 mq135_sensor(A0);
 float temperature;
-float humidity = 25.0;
+float humidity = 60.0;
 
 void setup() {
   //Initialization
@@ -62,12 +62,8 @@ void setup() {
   Serial.begin(115200);
 
   noTone(BuzzerPin);
-  digitalWrite(initializingPin, HIGH);
-  digitalWrite(failedPin, HIGH);
-  digitalWrite(sucessPin, HIGH);
-  digitalWrite(infoCapturingPin, HIGH);
   for (int y = 5; y>=0; y--){
-    tone(BuzzerPin, 2000);
+    tone(BuzzerPin, 4000);
     delay(200);
     noTone(BuzzerPin);
     delay(700);
@@ -82,6 +78,7 @@ void setup() {
 //--------------------------------------------------------------
   Serial.println("ISC");
   digitalWrite(initializingPin, HIGH);
+  buzzerOn_Off();
   delay(lightsInterval);
   if (!SD.begin(10)) {
     Serial.println("IF");
@@ -97,6 +94,7 @@ void setup() {
     noTone(BuzzerPin);
     digitalWrite(failedPin, LOW);
     digitalWrite(initializingPin, HIGH);
+    buzzerOn_Off();
     delay(lightsInterval);
   }
   digitalWrite(initializingPin, LOW);
@@ -110,6 +108,7 @@ void setup() {
     unsigned status;
     status = bmp.begin();
     digitalWrite(initializingPin, HIGH);
+    buzzerOn_Off();
     delay(lightsInterval);
     if (!status) {
       Serial.println("No BMP280");
@@ -126,6 +125,7 @@ void setup() {
       noTone(BuzzerPin);
       digitalWrite(failedPin, LOW);
       digitalWrite(initializingPin, HIGH);
+      buzzerOn_Off();
       delay(lightsInterval);
     }
     digitalWrite(initializingPin, LOW);
@@ -137,6 +137,7 @@ void setup() {
   //MQ135
   //--------------------------------------------------------------
   digitalWrite(initializingPin, HIGH);
+  buzzerOn_Off();
   delay(lightsInterval);
   int checkValue  = analogRead(A0);
   if (checkValue==0 || checkValue ==1023){
@@ -150,6 +151,7 @@ void setup() {
         break;
       }
       digitalWrite(initializingPin, HIGH);
+      buzzerOn_Off();
       delay(lightsInterval);
     }
   }
@@ -195,14 +197,15 @@ static void mainLoop(){
   noTone (BuzzerPin);
   digitalWrite(initializingPin, LOW);
   digitalWrite(infoCapturingPin, LOW);
-  String fileName = "MYFILE.txt";
-  myFile = SD.open(fileName, FILE_WRITE);
+  myFile = SD.open("MYFILE.txt", FILE_WRITE);
   if (myFile){
     myFile.println("CanSat Design Challenge 2025-2026");
     myFile.println("Group Members: Mackenzie, Malin, Bhagat");
     myFile.print("Number of Tests: ");
     myFile.println(numberOfTests);
-    myFile.println("Teacher: Stephen Wong");
+    myFile.println();
+    myFile.println("Test Results: ");
+    myFile.println();
     myFile.close();
   }
   else{
@@ -217,7 +220,7 @@ static void mainLoop(){
     }
   }  
   for (x = 1; x<=numberOfTests;x++){
-    myFile = SD.open(fileName, FILE_WRITE);
+    myFile = SD.open("MYFILE.txt", FILE_WRITE);
     if (myFile){
       mainText();
       myFile.close();
@@ -247,6 +250,7 @@ static void mainText(){
     myFile.print(x);
     myFile.println(": ");
     digitalWrite(infoCapturingPin, HIGH);
+    buzzerOn_Off();
     myFile.println("");
     myFile.print("BMP Temperature: ");
     myFile.print(temperature);
@@ -275,9 +279,15 @@ static void mainText(){
       myFile.println("Air Quality Description: Bad");
     }
     delay(otherInterval);
+    buzzerOn_Off();
     digitalWrite(infoCapturingPin, LOW);
     delay(otherInterval);
     myFile.println();
     myFile.println();
     myFile.println();
+}
+static void buzzerOn_Off(){
+  tone(BuzzerPin, 3000);
+  delay(250);
+  noTone(BuzzerPin);
 }
