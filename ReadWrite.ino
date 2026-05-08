@@ -9,7 +9,7 @@ const int BuzzerPin = 6; //buzzer
 
 //intervals between light blinks
 int x;
-int launchInterval = 10000;
+int launchInterval = 40000;
 int lightsInterval = 1000;
 int otherInterval = 1000;
 int sucessInterval = 3000;
@@ -62,6 +62,10 @@ void setup() {
   Serial.begin(115200);
 
   noTone(BuzzerPin);
+  digitalWrite(initializingPin, HIGH);
+  digitalWrite(failedPin, HIGH);
+  digitalWrite(sucessPin, HIGH);
+  digitalWrite(infoCapturingPin, HIGH);
   for (int y = 5; y>=0; y--){
     tone(BuzzerPin, 4000);
     delay(200);
@@ -277,6 +281,9 @@ static void mainText(){
     }
     else if (correctedPPM>2500&&correctedPPM<=5000){
       myFile.println("Air Quality Description: Bad");
+    }
+    else{
+      myFile.println("Air Quality Description: ");
     }
     delay(otherInterval);
     buzzerOn_Off();
